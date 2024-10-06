@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.schemas.coreapi import serializers
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from .models import Appointment, Patient, PatientLogs, Payment,Treatment
-from .serializers import AppointmentSerializer, PatientListSerializer, PatientLogsSerializer, PatientSerializer, TreatmentSerializer
+from .serializers import AppointmentCreationSerializer, AppointmentSerializer, PatientListSerializer, PatientLogsSerializer, PatientSerializer, TreatmentSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status 
 from rest_framework.decorators import action
@@ -200,7 +200,7 @@ class PatientView(ModelViewSet):
 
 
 
-class AppointmentViewSet(ListModelMixin,CreateModelMixin,GenericViewSet):
+class AppointmentViewSet(DestroyModelMixin,ListModelMixin,CreateModelMixin,GenericViewSet):
     queryset = Appointment.objects.all()
     serializer_class = Appointment
 
@@ -216,7 +216,7 @@ class AppointmentViewSet(ListModelMixin,CreateModelMixin,GenericViewSet):
 
         appointments = Appointment.objects.filter(
             day=day 
-        )
+        ).order_by("time")
 
         serializer = AppointmentSerializer(appointments,many=True)
         return Response(
@@ -224,7 +224,7 @@ class AppointmentViewSet(ListModelMixin,CreateModelMixin,GenericViewSet):
         )
 
     def create(self, request, *args, **kwargs):
-        instance = AppointmentSerializer(data=request.data)
+        instance = AppointmentCreationSerializer(data=request.data)
         instance.is_valid(raise_exception=True)
         instance.save()
         return Response(

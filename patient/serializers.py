@@ -16,11 +16,21 @@ class PatientLogsSerializer(serializers.ModelSerializer):
         model = PatientLogs
         fields = "__all__"
 
-
-class AppointmentSerializer(serializers.ModelSerializer):
+class AppointmentCreationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointment
         fields = "__all__"
+
+class AppointmentSerializer(serializers.ModelSerializer):
+    time = serializers.SerializerMethodField()
+    class Meta:
+        model = Appointment
+        exclude = ["created_at","updated_at"] 
+
+
+    def get_time(self,obj):
+        return obj.time.strftime("%I:%M %p")
+
 
 class TreatmentSerializer(serializers.ModelSerializer):
     patient_name = serializers.SerializerMethodField()
