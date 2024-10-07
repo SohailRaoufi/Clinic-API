@@ -35,6 +35,8 @@ class JwtToken(APIView):
 
 
 class Staff(ModelViewSet):
+    queryset = User.objects.filter(is_staff=True, is_superuser=False)
+
     def create_user(self, username, password, email=None):
         user = User.objects.create_user(
             username, email, password, is_staff=True)
