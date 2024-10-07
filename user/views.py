@@ -5,6 +5,7 @@ from rest_framework import status
 from django.contrib.auth import authenticate
 from .token_factory import create_token
 from django.contrib.auth.models import User
+from rest_framework.viewsets import ModelViewSet
 
 
 class JwtToken(APIView):
@@ -33,12 +34,13 @@ class JwtToken(APIView):
             )
 
 
-class Staff(APIView):
+class Staff(ModelViewSet):
     def create_user(self, username, password, email=None):
-        user = User.objects.create_user(username, email, password)
+        user = User.objects.create_user(
+            username, email, password, is_staff=True)
         user.save()
 
-    def post(self, request):
+    def create(self, request):
         username = request.data.get("username", None)
         email = request.data.get("email", None)
         password = request.data.get("password", None)

@@ -9,10 +9,10 @@ router = routers.DefaultRouter()
 router.register("patient", PatientView)
 router.register("treatment", TreatmentViewSet)
 router.register("appointment", AppointmentViewSet)
+router.register("staff", Staff)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/", include(router.urls)),
     path("api/auth/", JwtToken.as_view()),
-    path("api/auth/create", Staff.as_view())
 ]
