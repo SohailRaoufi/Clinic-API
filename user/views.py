@@ -6,6 +6,8 @@ from django.contrib.auth import authenticate
 from .token_factory import create_token
 from django.contrib.auth.models import User
 from rest_framework.viewsets import ModelViewSet
+from .serializers import StaffSerializer
+from rest_framework.permissions import IsAuthenticated
 
 
 class JwtToken(APIView):
@@ -36,10 +38,12 @@ class JwtToken(APIView):
 
 class Staff(ModelViewSet):
     queryset = User.objects.filter(is_staff=True, is_superuser=False)
+    serializer_class = StaffSerializer
+    permission_classes = [IsAuthenticated]
 
-    def create_user(self, username, password, email=None):
+    def create_user(self, username, password, email):
         user = User.objects.create_user(
-            username, email, password, is_staff=True)
+            username=username, email=email, password=password, is_staff=True)
         user.save()
 
     def create(self, request):
@@ -53,7 +57,7 @@ class Staff(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        self.create_user(username, email, password)
+        self.create_user(username, password, email)
         return Response(
             status=status.HTTP_200_OK
         )
