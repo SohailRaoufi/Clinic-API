@@ -41,7 +41,8 @@ class PatientView(ModelViewSet):
             PatientLogs.objects.create(  # type:ignore
                 patient=patient,
                 user=request.user,
-                msg=f"Created By {request.user.username} on {get_curr_time()}"
+                msg=f"Created Treatment '{instance.type_of_treatment}' With Price Of {
+                    instance.amount} By {request.user.username} on {get_curr_time()}"
             )
 
             if treatment.get("paid", None):
