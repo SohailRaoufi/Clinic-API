@@ -3,7 +3,14 @@ from rest_framework.response import Response
 from rest_framework.schemas.coreapi import serializers
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from .models import Appointment, Patient, PatientLogs, Payment,Treatment
-from .serializers import AppointmentCreationSerializer, AppointmentSerializer, PatientListSerializer, PatientLogsSerializer, PatientSerializer, TreatmentSerializer
+from .serializers import (
+    AppointmentCreationSerializer,
+    AppointmentSerializer,
+    PatientListSerializer,
+    PatientLogsSerializer,
+    PatientSerializer, 
+    TreatmentSerializer
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status 
 from rest_framework.decorators import action
@@ -44,11 +51,16 @@ class PatientView(ModelViewSet):
             PatientLogs.objects.create( #type:ignore
                 patient=patient,
                 user=request.user,
-                msg=f"Created By {request.user.username} on {get_curr_time()}"
+                msg=f"Created Treatment '{instance.type_of_treatment}' With Price Of {instance.amount} By {request.user.username} on {get_curr_time()}"
             )
 
             
             if treatment.get("paid",None):
+                if instance.amount < int(treatment.get("paid",float("-inf"))):
+                    return Response(
+                        {"detail" : "wrong amount"},
+                        status=status.HTTP_406_NOT_ACCEPTABLE
+                    )
                 payment_instance = Payment.objects.create( #type:ignore
                     treatment=instance,
                     amount=treatment.get("paid")
@@ -58,7 +70,7 @@ class PatientView(ModelViewSet):
                 PatientLogs.objects.create( 
                     patient=patient,
                     user=request.user,
-                    msg=f"Received {treatment.get("paid")} by {request.user.username} on {get_curr_time()}",
+                    msg=f"Received {payment_instance.amount} by {request.user.username} on Treatment {instance.type_of_treatment} on  {get_curr_time()}",
                 )
            
 
@@ -185,7 +197,7 @@ class PatientView(ModelViewSet):
         treat_serializer = TreatmentSerializer(treatments,many=True)
         patient_logs = PatientLogs.objects.filter(
                 patient=instance
-        )
+        ).order_by("-created_at")
 
         logs_serializer = PatientLogsSerializer(patient_logs,many=True) 
         serializer = PatientSerializer(instance)
