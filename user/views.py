@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
 from .token_factory import create_token
-from django.contrib.auth.models import UserManager
+from django.contrib.auth.models import User
 
 
 class JwtToken(APIView):
@@ -33,9 +33,10 @@ class JwtToken(APIView):
             )
 
 
-class Staff(APIView, UserManager):
-    def create_user(self, username: str, email: str | None = ..., password: str | None = ..., **extra_fields: Any) -> Any:
-        return super().create_user(username, email, password, **extra_fields)
+class Staff(APIView):
+    def create_user(self, username, password, email=None):
+        user = User.objects.create_user(username, email, password)
+        user.save()
 
     def post(self, request):
         username = request.data.get("username", None)
