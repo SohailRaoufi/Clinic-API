@@ -174,7 +174,7 @@ class PatientView(ModelViewSet):
         treat_serializer = TreatmentSerializer(treatments, many=True)
         patient_logs = PatientLogs.objects.filter(
             patient=instance
-        )
+        ).order_by("-created_at")
 
         logs_serializer = PatientLogsSerializer(patient_logs, many=True)
         serializer = PatientSerializer(instance)
