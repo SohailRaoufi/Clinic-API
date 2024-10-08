@@ -1,6 +1,6 @@
 import json
 from typing import Any
-
+from django.core.paginator import Paginator
 from user.token_factory import decode_token
 from .models import Messages, Room
 from django.contrib.auth.models import User
@@ -19,6 +19,22 @@ def get_msgs(room: Room):
     serializer = MsgSerializer(messages, many=True)
     return serializer.data
 
+
+@sync_to_async
+def get_msgs_from_page(room : Room,page : int):
+    PER_PAGE = 20
+    msgs = Messages.objects.filter(room=room).order_by("-created_at") #type:ignore
+    paginator = Paginator(msgs,PER_PAGE)
+    try:
+        page_obj = paginator.page(page)
+    except:
+        return {"messages": [],"has_next":False}
+
+    msgs_data = list(page_obj.object_list.values())
+    return {
+        "has_next" : page_obj.has_next(),
+        "messages" : msgs_data
+    }
 
 @sync_to_async
 def create_msg(room: Room, sender: User, receiver: User, msg: str):
@@ -156,6 +172,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
 
+
+        elif type_of_msg == "scroll":
+            page = int(data["page"])
+            msgs = await get_msgs_from_page(self.curr_room,page) #type:ignore
+            await self.channel_layer.group_send(  # type:ignore
+                self.room_name,
+                {
+                    "type": "chat_message",
+                    "message": msgs
+                }
+            ) 
     async def chat_message(self, event):
         message = event["message"]
         await self.send(json.dumps({"type": "new_message", "message": message}))
