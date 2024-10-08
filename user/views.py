@@ -44,13 +44,11 @@ class ChatViewSet(ListModelMixin,GenericViewSet):
                 room = sync_get_room(request.user,user)
                 msg = Messages.objects.create( #type:ignore
                     room=room,
-                    type="text",
+                    type="share",
                     text=patient,
                     sender=request.user,
                     receiver=user
                 )
-                print(msg)
-                print(f"room_{room.id}")
                 async_to_sync(channel_layer.group_send)( #type:ignore
                 f"room_{room.id}", #type:ignore
                 {
