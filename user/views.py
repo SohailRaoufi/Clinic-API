@@ -1,15 +1,28 @@
-from typing import Any
+from rest_framework.mixins import ListModelMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
 from .token_factory import create_token
 from django.contrib.auth.models import User
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from .serializers import StaffSerializer
 from rest_framework.permissions import IsAuthenticated, BasePermission
 
 
+class ChatViewSet(ListModelMixin,GenericViewSet):
+    queryset = User.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class = StaffSerializer
+
+
+    def list(self, request, *args, **kwargs):
+        all_users = User.objects.exclude(id = request.user.id)
+        serializer = StaffSerializer(all_users,many=True)
+        return Response(
+            serializer.data
+        )
+    
 class JwtToken(APIView):
     def post(self, request):
         email = request.data.get("username", None)
