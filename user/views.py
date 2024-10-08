@@ -1,8 +1,11 @@
+from rest_framework.generics import get_object_or_404
 from rest_framework.mixins import ListModelMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
+
+from patient.models import Patient
 from .consumers import get_room, sync_get_room
 from user.models import Messages
 from .token_factory import create_token
@@ -31,6 +34,7 @@ class ChatViewSet(ListModelMixin,GenericViewSet):
 
     def create(self,request):
         patient = request.data.get("id")
+        patient_instance = get_object_or_404(Patient,id=patient)
         users = request.data.get("users").split(",")
         channel_layer = get_channel_layer()
         for user_email in users:
@@ -45,7 +49,7 @@ class ChatViewSet(ListModelMixin,GenericViewSet):
                 msg = Messages.objects.create( #type:ignore
                     room=room,
                     type="share",
-                    text=patient,
+                    text=f"{patient_instance.id},{patient_instance.name} {patient_instance.last_name}",
                     sender=request.user,
                     receiver=user
                 )

@@ -111,7 +111,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         type_of_msg = data["type"]
-
         if type_of_msg == "connect":
             email = data["email"]
             other_user, res = await get_user(email)

@@ -17,9 +17,7 @@ def create_token(user : User):
 def decode_token(token):
     try:
         data = jwt.decode(token,settings.SECRET_KEY,algorithms="HS256")
-        print(f"data {data}")
         user_id = data.get("user_id",None)
-        print(f"user_id {user_id}")
         if not user_id:
             return None
         return User.objects.get(id=user_id)
