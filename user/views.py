@@ -45,6 +45,7 @@ class Staff(ModelViewSet):
         user = User.objects.create_user(
             username=username, email=email, password=password, is_staff=True)
         user.save()
+    
 
     def create(self, request):
         username = request.data.get("username", None)
