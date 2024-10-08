@@ -15,7 +15,7 @@ import base64
 
 @sync_to_async
 def get_msgs(room: Room):
-    messages = Messages.objects.filter(room=room)  # type:ignore
+    messages = Messages.objects.filter(room=room)[:20]  # type:ignore
     serializer = MsgSerializer(messages, many=True)
     return serializer.data
 
