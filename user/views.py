@@ -3,11 +3,16 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
+from .consumers import get_room, sync_get_room
+from user.models import Messages
 from .token_factory import create_token
 from django.contrib.auth.models import User
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from .serializers import StaffSerializer
 from rest_framework.permissions import IsAuthenticated, BasePermission
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from .serializers import MsgSerializer
 
 
 class ChatViewSet(ListModelMixin,GenericViewSet):
@@ -22,7 +27,39 @@ class ChatViewSet(ListModelMixin,GenericViewSet):
         return Response(
             serializer.data
         )
-    
+
+
+    def create(self,request):
+        patient = request.data.get("id")
+        users = request.data.get("users").split(",")
+        channel_layer = get_channel_layer()
+        for user_email in users:
+            try:
+                user = User.objects.get(email=user_email) 
+            except Exception as e:
+                print(str(e))
+
+
+            if user: #type:ignore
+                room = sync_get_room(request.user,user)
+                msg = Messages.objects.create( #type:ignore
+                    room=room,
+                    type="text",
+                    text=patient,
+                    sender=request.user,
+                    receiver=user
+                )
+                print(msg)
+                print(f"room_{room.id}")
+                async_to_sync(channel_layer.group_send)( #type:ignore
+                f"room_{room.id}", #type:ignore
+                {
+                    "type": "chat_message",
+                    "message": MsgSerializer(msg).data 
+                }
+            )
+        return Response(status=status.HTTP_201_CREATED)
+
 class JwtToken(APIView):
     def post(self, request):
         email = request.data.get("username", None)

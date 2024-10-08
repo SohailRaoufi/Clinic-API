@@ -52,6 +52,16 @@ def get_user(email: str):
     except User.DoesNotExist: #type:ignore
         return None, False
 
+def sync_get_room(user: User, other_user: User):
+    room, _ = Room.objects.get_or_create( #type:ignore
+            user1__in=[user, other_user],
+            user2__in=[user, other_user],
+            defaults={'user1': user, 'user2': other_user}
+        )
+    return room   
+
+
+
 @sync_to_async
 def get_room(user: User, other_user: User):
     room, _ = Room.objects.get_or_create( #type:ignore
@@ -78,10 +88,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.other_user = None
         query_params = self.scope['query_string'].decode('utf-8')
         self.access_token = query_params.split('=')[1]
-        print(f"access_token :  {self.access_token}")
 
         user, validation_res = await validate_user(self.access_token)
-        print(user)
         if not validation_res:
             await self.close()
             return

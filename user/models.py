@@ -3,7 +3,8 @@ from django.db import models
 
 MSG_TYPES = [
     ("text","text"),
-    ("link","link")
+    ("link","link"),
+    ("share","share")
 ]
 
 class Room(models.Model):
