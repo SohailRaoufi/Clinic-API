@@ -18,49 +18,48 @@ from channels.layers import get_channel_layer
 from .serializers import MsgSerializer
 
 
-class ChatViewSet(ListModelMixin,GenericViewSet):
+class ChatViewSet(ListModelMixin, GenericViewSet):
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = StaffSerializer
 
-
     def list(self, request, *args, **kwargs):
-        all_users = User.objects.exclude(id = request.user.id)
-        serializer = StaffSerializer(all_users,many=True)
+        all_users = User.objects.exclude(id=request.user.id)
+        serializer = StaffSerializer(all_users, many=True)
         return Response(
             serializer.data
         )
 
-
-    def create(self,request):
+    def create(self, request):
         patient = request.data.get("id")
-        patient_instance = get_object_or_404(Patient,id=patient)
+        patient_instance = get_object_or_404(Patient, id=patient)
         users = request.data.get("users").split(",")
         channel_layer = get_channel_layer()
         for user_email in users:
             try:
-                user = User.objects.get(email=user_email) 
+                user = User.objects.get(email=user_email)
             except Exception as e:
                 print(str(e))
 
-
-            if user: #type:ignore
-                room = sync_get_room(request.user,user)
-                msg = Messages.objects.create( #type:ignore
+            if user:  # type:ignore
+                room = sync_get_room(request.user, user)
+                msg = Messages.objects.create(  # type:ignore
                     room=room,
                     type="share",
-                    text=f"{patient_instance.id},{patient_instance.name} {patient_instance.last_name}",
+                    text=f"{patient_instance.id},{patient_instance.name} {
+                        patient_instance.last_name}",
                     sender=request.user,
                     receiver=user
                 )
-                async_to_sync(channel_layer.group_send)( #type:ignore
-                f"room_{room.id}", #type:ignore
-                {
-                    "type": "chat_message",
-                    "message": MsgSerializer(msg).data 
-                }
-            )
+                async_to_sync(channel_layer.group_send)(  # type:ignore
+                    f"room_{room.id}",  # type:ignore
+                    {
+                        "type": "chat_message",
+                        "message": MsgSerializer(msg).data
+                    }
+                )
         return Response(status=status.HTTP_201_CREATED)
+
 
 class JwtToken(APIView):
     def post(self, request):
