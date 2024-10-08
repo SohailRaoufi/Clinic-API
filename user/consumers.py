@@ -143,8 +143,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             msgs = await get_msgs(self.curr_room)
             # type:ignore
             await self.channel_layer.group_add(self.room_name, self.channel_name)
-            await self.send(json.dumps({"type": "chat_history", "messages": msgs}))
-            return
+            await self.send(json.dumps(
+                {
+                    "type": "chat_history", 
+                    "messages": {
+                        "messages": msgs
+                        }
+                    }
+                )
+            )
 
         elif type_of_msg == "text":
             text = data["text"]
