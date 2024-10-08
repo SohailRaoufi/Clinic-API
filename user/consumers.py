@@ -176,13 +176,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         elif type_of_msg == "scroll":
             page = int(data["page"])
             msgs = await get_msgs_from_page(self.curr_room,page) #type:ignore
-            await self.channel_layer.group_send(  # type:ignore
-                self.room_name,
-                {
-                    "type": "chat_message",
-                    "message": msgs
-                }
-            ) 
+            await self.send(json.dumps({"type": "chat_history", "messages": msgs}))
+
     async def chat_message(self, event):
         message = event["message"]
         await self.send(json.dumps({"type": "new_message", "message": message}))
