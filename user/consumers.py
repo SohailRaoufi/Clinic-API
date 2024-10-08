@@ -21,20 +21,22 @@ def get_msgs(room: Room):
 
 
 @sync_to_async
-def get_msgs_from_page(room : Room,page : int):
+def get_msgs_from_page(room: Room, page: int):
     PER_PAGE = 20
-    msgs = Messages.objects.filter(room=room).order_by("-created_at") #type:ignore
-    paginator = Paginator(msgs,PER_PAGE)
+    msgs = Messages.objects.filter(room=room).order_by(
+        "-created_at")  # type:ignore
+    paginator = Paginator(msgs, PER_PAGE)
     try:
         page_obj = paginator.page(page)
     except:
-        return {"messages": [],"has_next":False}
+        return {"messages": [], "has_next": False}
 
-    msgs_data = list(page_obj.object_list.values())
+    serializer = MsgSerializer(msgs, many=True)
     return {
-        "has_next" : page_obj.has_next(),
-        "messages" : msgs_data
+        "has_next": page_obj.has_next(),
+        "messages": serializer.data
     }
+
 
 @sync_to_async
 def create_msg(room: Room, sender: User, receiver: User, msg: str):
@@ -72,14 +74,14 @@ def get_user(email: str):
     except User.DoesNotExist:  # type:ignore
         return None, False
 
-def sync_get_room(user: User, other_user: User):
-    room, _ = Room.objects.get_or_create( #type:ignore
-            user1__in=[user, other_user],
-            user2__in=[user, other_user],
-            defaults={'user1': user, 'user2': other_user}
-        )
-    return room   
 
+def sync_get_room(user: User, other_user: User):
+    room, _ = Room.objects.get_or_create(  # type:ignore
+        user1__in=[user, other_user],
+        user2__in=[user, other_user],
+        defaults={'user1': user, 'user2': other_user}
+    )
+    return room
 
 
 @sync_to_async
@@ -171,7 +173,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     "message": msg
                 }
             )
-
 
         elif type_of_msg == "scroll":
             page = int(data["page"])
