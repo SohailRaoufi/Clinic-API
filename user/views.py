@@ -7,7 +7,7 @@ from .token_factory import create_token
 from django.contrib.auth.models import User
 from rest_framework.viewsets import ModelViewSet
 from .serializers import StaffSerializer
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, BasePermission
 
 
 class JwtToken(APIView):
@@ -36,16 +36,21 @@ class JwtToken(APIView):
             )
 
 
+class IsAdmin(BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        return user.is_superuser
+
+
 class Staff(ModelViewSet):
     queryset = User.objects.filter(is_staff=True, is_superuser=False)
     serializer_class = StaffSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdmin]
 
     def create_user(self, username, password, email):
         user = User.objects.create_user(
             username=username, email=email, password=password, is_staff=True)
         user.save()
-    
 
     def create(self, request):
         username = request.data.get("username", None)
