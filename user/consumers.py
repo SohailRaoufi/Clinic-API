@@ -15,7 +15,8 @@ import base64
 
 @sync_to_async
 def get_msgs(room: Room):
-    messages = Messages.objects.filter(room=room)[:20]  # type:ignore
+    messages = Messages.objects.filter(room=room).order_by(
+        "-created_at")[:20]  # type:ignore
     serializer = MsgSerializer(messages, many=True)
     return serializer.data
 
@@ -31,7 +32,7 @@ def get_msgs_from_page(room: Room, page: int):
     except:
         return {"messages": [], "has_next": False}
 
-    serializer = MsgSerializer(msgs, many=True)
+    serializer = MsgSerializer(page_obj, many=True)
     return {
         "has_next": page_obj.has_next(),
         "messages": serializer.data
@@ -143,15 +144,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             msgs = await get_msgs(self.curr_room)
             # type:ignore
             await self.channel_layer.group_add(self.room_name, self.channel_name)
-            await self.send(json.dumps(
-                {
-                    "type": "chat_history", 
-                    "messages": {
-                        "messages": msgs
-                        }
-                    }
-                )
-            )
+            # await self.send(json.dumps(
+            #     {
+            #         "type": "chat_history",
+            #         "messages": {
+            #             "messages": msgs
+            #             }
+            #         }
+            #     )
+            # )
 
         elif type_of_msg == "text":
             text = data["text"]
@@ -183,7 +184,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         elif type_of_msg == "scroll":
             page = int(data["page"])
-            msgs = await get_msgs_from_page(self.curr_room,page) #type:ignore
+            # type:ignore
+            msgs = await get_msgs_from_page(self.curr_room, page)
             await self.send(json.dumps({"type": "chat_history", "messages": msgs}))
 
     async def chat_message(self, event):

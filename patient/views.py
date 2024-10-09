@@ -2,14 +2,15 @@ from typing import Any, Dict
 from rest_framework.response import Response
 from rest_framework.schemas.coreapi import serializers
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
-from .models import Appointment, Patient, PatientLogs, Payment, Treatment
-from .serializers import AppointmentCreationSerializer, AppointmentSerializer, PatientListSerializer, PatientLogsSerializer, PatientSerializer, TreatmentSerializer
+from .models import Appointment, Patient, PatientLogs, Payment, Treatment, DailyPatient
+from .serializers import AppointmentCreationSerializer, AppointmentSerializer, PatientListSerializer, PatientLogsSerializer, PatientSerializer, TreatmentSerializer, DailySerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.decorators import action
 from .utils import get_curr_time
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, DestroyModelMixin, UpdateModelMixin
 from rest_framework.pagination import PageNumberPagination
+from user.views import IsAdmin
 
 
 class PatientView(ModelViewSet):
@@ -269,3 +270,9 @@ class TreatmentViewSet(
         return Response(
             status=status.HTTP_204_NO_CONTENT
         )
+
+
+class DailyViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated, IsAdmin]
+    queryset = DailyPatient.objects.all()
+    serializer_class = DailySerializer

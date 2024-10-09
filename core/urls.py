@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import include, path
 from user.views import ChatViewSet, JwtToken, Staff
 from rest_framework import routers
-from patient.views import AppointmentViewSet, PatientView, TreatmentViewSet
+from patient.views import AppointmentViewSet, PatientView, TreatmentViewSet, DailyViewSet
 from django.conf.urls.static import static
 from django.conf import settings
 
@@ -11,8 +11,8 @@ router.register("patient", PatientView)
 router.register("treatment", TreatmentViewSet)
 router.register("appointment", AppointmentViewSet)
 router.register("staff", Staff)
-router.register("chats",ChatViewSet,basename="chats")
-
+router.register("chats", ChatViewSet, basename="chats")
+router.register("daily", DailyViewSet, basename="daily")
 
 
 urlpatterns = [
