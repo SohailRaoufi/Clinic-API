@@ -287,7 +287,7 @@ class DailyViewSet(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        daily = DailyPatient.objects.filter(day=day).order_by("day")
+        daily = DailyPatient.objects.filter(day=day)
         serailizer = DailySerializer(daily, many=True)
         return Response(
             serailizer.data
