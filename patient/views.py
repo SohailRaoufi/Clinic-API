@@ -276,3 +276,19 @@ class DailyViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, IsAdmin]
     queryset = DailyPatient.objects.all()
     serializer_class = DailySerializer
+
+    def list(self, request):
+        day = request.GET.get("day")
+        if not day:
+            return Response(
+                {
+                    "Param Required": "Day Rquired"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        daily = DailyPatient.objects.filter(day=day).order_by("day")
+        serailizer = DailySerializer(daily, many=True)
+        return Response(
+            serailizer.data
+        )
