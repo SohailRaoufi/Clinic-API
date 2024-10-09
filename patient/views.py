@@ -14,7 +14,7 @@ from django.db.models import Q
 
 
 class StandardPagination(PageNumberPagination):
-    page_size = 20 
+    page_size = 20
     page_size_query_param = 'page'
     max_page_size = 1000
 
@@ -22,9 +22,9 @@ class StandardPagination(PageNumberPagination):
 class PatientView(ModelViewSet):
     queryset: Patient = Patient.objects.all()  # type:ignore
     pagination_class = StandardPagination
-    permission_classes = [IsAuthenticated]    
+    permission_classes = [IsAuthenticated]
 
-    def get_serializer_class(self): #type:ignore
+    def get_serializer_class(self):  # type:ignore
         if self.action in ["list", "retrieve"]:
             return PatientListSerializer
         else:
@@ -38,11 +38,13 @@ class PatientView(ModelViewSet):
         query_set = self.queryset
 
         if type_of == "number":
-            query_set = query_set.filter(phone_no__icontains=data)  # type:ignore
+            query_set = query_set.filter(
+                phone_no__icontains=data)  # type:ignore
 
         elif type_of == "name":
             query_set = query_set.filter(  # type:ignore
-                Q(name__icontains=data) | Q(last_name__icontains=data)  # type:ignore
+                Q(name__icontains=data) | Q(
+                    last_name__icontains=data)  # type:ignore
             )
 
         else:
@@ -55,9 +57,7 @@ class PatientView(ModelViewSet):
 
         serializer = PatientListSerializer(query_set, many=True)
         return Response(serializer.data)
-    
-    
-    
+
     def handle_treatments(
             self,
             *,
@@ -197,6 +197,22 @@ class PatientView(ModelViewSet):
 
         return Response(
             status=status.HTTP_204_NO_CONTENT
+        )
+
+    def update(self, request, pk=None):
+        instance = Patient.objects.get(id=pk)
+        serializer = PatientSerializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        patient: Patient = serializer.save()  # type:ignore
+
+        PatientLogs.objects.create(  # type:ignore
+            patient=patient,
+            msg=f"Updated by {request.user.username} on {get_curr_time()}",
+            user=request.user
+        )
+
+        return Response(
+            status=status.HTTP_200_OK
         )
 
     def retrieve(self, request, *args, **kwargs):
