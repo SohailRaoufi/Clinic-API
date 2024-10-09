@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
 
-from patient.models import Patient,Payment,DailyPatient
+from patient.models import Patient, Payment, DailyPatient
 from .consumers import get_room, sync_get_room
 from user.models import Messages
 from .token_factory import create_token
@@ -19,113 +19,6 @@ from .serializers import MsgSerializer
 from django.utils.dateparse import parse_date
 from django.db.models import Sum
 from datetime import datetime
-
-
-
-class AnalyticsAPIView(APIView):
-    def get(self, request):
-        analytics_type = request.query_params.get("type")
-        data = request.query_params.get("data")
-
-        if not analytics_type or not data:
-            return Response({"error": "Both 'type' and 'data' parameters are required."}, status=400)
-
-        try:
-            if analytics_type == 'day':
-                date_obj = parse_date(data)
-                if not date_obj:
-                    raise ValueError
-            elif analytics_type == 'month':
-                date_obj = datetime.strptime(data, "%Y-%m")
-            elif analytics_type == 'year':
-                date_obj = datetime.strptime(data, "%Y")
-            else:
-                return Response({"error": "Invalid 'type' parameter. Use 'day', 'month', or 'year'."}, status=400)
-        except ValueError:
-            return Response({"error": "Invalid 'data' format."}, status=400)
-
-        if analytics_type == 'day':
-            payments_daily_patient = DailyPatient.objects.filter(day=date_obj) #type:ignore
-            payments_treatment = Payment.objects.filter(created_at__date=date_obj) #type:ignore
-
-            result = []
-            total_payment = 0
-            for payment in payments_daily_patient:
-                result.append({
-                    "name": payment.name,
-                    "payment": payment.payment,
-                    "source": "DailyPatient"
-                })
-                total_payment += payment.payment
-
-            for payment in payments_treatment:
-                result.append({
-                    "name": payment.treatment.patient.full_name(),
-                    "payment": payment.amount,
-                    "name" : payment.treatment.type_of_treatment,
-                    "source": "Treatment"
-                })
-                total_payment += payment.amount
-
-            return Response({
-                "date": data,
-                "payments": result,
-                "total" : total_payment
-            })
-
-        elif analytics_type == 'month':
-            payments_daily_patient = DailyPatient.objects.filter(day__year=date_obj.year, day__month=date_obj.month) #type:ignore
-            payments_treatment = Payment.objects.filter(created_at__year=date_obj.year, created_at__month=date_obj.month) #type:ignore
-
-            result = {}
-            total_payment = 0
-            for payment in payments_daily_patient:
-                day_str = payment.day.strftime("%Y-%m-%d")
-                if day_str not in result:
-                    result[day_str] = 0
-                result[day_str] += payment.payment
-                total_payment += payment.payment
-
-
-            for payment in payments_treatment:
-                day_str = payment.created_at.strftime("%Y-%m-%d")
-                if day_str not in result:
-                    result[day_str] = 0
-                result[day_str] += payment.amount
-                total_payment += payment.amount
-            
-            return Response({
-                "month": data,
-                "daily_payments": result,
-                "total" : total_payment
-            })
-
-        elif analytics_type == 'year':
-            payments_daily_patient = DailyPatient.objects.filter(day__year=date_obj.year) #type:ignore
-            payments_treatment = Payment.objects.filter(created_at__year=date_obj.year) #type:ignore
-
-            result = {}
-            total_payment = 0
-            for payment in payments_daily_patient:
-                month_str = payment.day.strftime("%Y-%m")
-                if month_str not in result:
-                    result[month_str] = 0
-                result[month_str] += payment.payment
-                total_payment += payment.payment
-
-
-            for payment in payments_treatment:
-                month_str = payment.created_at.strftime("%Y-%m")
-                if month_str not in result:
-                    result[month_str] = 0
-                result[month_str] += payment.amount
-                total_payment+= payment.amount
-            return Response({
-                "year": data,
-                "monthly_payments": result,
-                "total" : total_payment
-            })
-
 
 
 class ChatViewSet(ListModelMixin, GenericViewSet):
@@ -228,3 +121,114 @@ class Staff(ModelViewSet):
         return Response(
             status=status.HTTP_200_OK
         )
+
+
+class AnalyticsAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def get(self, request):
+        analytics_type = request.query_params.get("type")
+        data = request.query_params.get("data")
+
+        if not analytics_type or not data:
+            return Response({"error": "Both 'type' and 'data' parameters are required."}, status=400)
+
+        try:
+            if analytics_type == 'day':
+                date_obj = parse_date(data)
+                if not date_obj:
+                    raise ValueError
+            elif analytics_type == 'month':
+                date_obj = datetime.strptime(data, "%Y-%m")
+            elif analytics_type == 'year':
+                date_obj = datetime.strptime(data, "%Y")
+            else:
+                return Response({"error": "Invalid 'type' parameter. Use 'day', 'month', or 'year'."}, status=400)
+        except ValueError:
+            return Response({"error": "Invalid 'data' format."}, status=400)
+
+        if analytics_type == 'day':
+            payments_daily_patient = DailyPatient.objects.filter(
+                day=date_obj)  # type:ignore
+            payments_treatment = Payment.objects.filter(
+                created_at__date=date_obj)  # type:ignore
+
+            result = []
+            total_payment = 0
+            for payment in payments_daily_patient:
+                result.append({
+                    "name": payment.name,
+                    "payment": payment.payment,
+                    "source": "DailyPatient"
+                })
+                total_payment += payment.payment
+
+            for payment in payments_treatment:
+                result.append({
+                    "name": payment.treatment.patient.full_name(),
+                    "payment": payment.amount,
+                    "name": payment.treatment.type_of_treatment,
+                    "source": "Treatment"
+                })
+                total_payment += payment.amount
+
+            return Response({
+                "date": data,
+                "payments": result,
+                "total": total_payment
+            })
+
+        elif analytics_type == 'month':
+            payments_daily_patient = DailyPatient.objects.filter(
+                day__year=date_obj.year, day__month=date_obj.month)  # type:ignore
+            payments_treatment = Payment.objects.filter(
+                created_at__year=date_obj.year, created_at__month=date_obj.month)  # type:ignore
+
+            result = {}
+            total_payment = 0
+            for payment in payments_daily_patient:
+                day_str = payment.day.strftime("%Y-%m-%d")
+                if day_str not in result:
+                    result[day_str] = 0
+                result[day_str] += payment.payment
+                total_payment += payment.payment
+
+            for payment in payments_treatment:
+                day_str = payment.created_at.strftime("%Y-%m-%d")
+                if day_str not in result:
+                    result[day_str] = 0
+                result[day_str] += payment.amount
+                total_payment += payment.amount
+
+            return Response({
+                "month": data,
+                "daily_payments": result,
+                "total": total_payment
+            })
+
+        elif analytics_type == 'year':
+            payments_daily_patient = DailyPatient.objects.filter(
+                day__year=date_obj.year)  # type:ignore
+            payments_treatment = Payment.objects.filter(
+                created_at__year=date_obj.year)  # type:ignore
+
+            result = {}
+            total_payment = 0
+            for payment in payments_daily_patient:
+                month_str = payment.day.strftime("%Y-%m")
+                if month_str not in result:
+                    result[month_str] = 0
+                result[month_str] += payment.payment
+                total_payment += payment.payment
+
+            for payment in payments_treatment:
+                month_str = payment.created_at.strftime("%Y-%m")
+                if month_str not in result:
+                    result[month_str] = 0
+                result[month_str] += payment.amount
+                total_payment += payment.amount
+            return Response({
+                "year": data,
+                "monthly_payments": result,
+                "total": total_payment
+            })

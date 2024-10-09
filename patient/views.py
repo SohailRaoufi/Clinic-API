@@ -10,7 +10,6 @@ from rest_framework.decorators import action
 from .utils import get_curr_time
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, DestroyModelMixin, UpdateModelMixin
 from rest_framework.pagination import PageNumberPagination
-from user.views import IsAdmin
 
 
 class PatientView(ModelViewSet):
@@ -273,7 +272,7 @@ class TreatmentViewSet(
 
 
 class DailyViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAuthenticated]
     queryset = DailyPatient.objects.all()
     serializer_class = DailySerializer
 
