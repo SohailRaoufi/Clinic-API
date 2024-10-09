@@ -1,6 +1,5 @@
 from typing import Any, Dict
 from rest_framework.response import Response
-from rest_framework.schemas.coreapi import serializers
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from .models import Appointment, Patient, PatientLogs, Payment, Treatment, DailyPatient
 from .serializers import AppointmentCreationSerializer, AppointmentSerializer, PatientListSerializer, PatientLogsSerializer, PatientSerializer, TreatmentSerializer, DailySerializer
@@ -10,21 +9,55 @@ from rest_framework.decorators import action
 from .utils import get_curr_time
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, DestroyModelMixin, UpdateModelMixin
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import PageNumberPagination
+from django.db.models import Q
+
+
+class StandardPagination(PageNumberPagination):
+    page_size = 20 
+    page_size_query_param = 'page'
+    max_page_size = 1000
 
 
 class PatientView(ModelViewSet):
     queryset: Patient = Patient.objects.all()  # type:ignore
-    permission_classes = [IsAuthenticated]
+    pagination_class = StandardPagination
+    permission_classes = [IsAuthenticated]    
 
-    def get_serializer_class(self):
+    def get_serializer_class(self): #type:ignore
         if self.action in ["list", "retrieve"]:
             return PatientListSerializer
         else:
             return PatientSerializer
 
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
+    @action(detail=False, methods=["GET"])
+    def search(self, request):
+        type_of = request.query_params.get("type")
+        data = request.query_params.get("data")
 
+        query_set = self.queryset
+
+        if type_of == "number":
+            query_set = query_set.filter(phone_no__icontains=data)  # type:ignore
+
+        elif type_of == "name":
+            query_set = query_set.filter(  # type:ignore
+                Q(name__icontains=data) | Q(last_name__icontains=data)  # type:ignore
+            )
+
+        else:
+            return Response({"detail": "Invalid search type."}, status=400)
+
+        page = self.paginate_queryset(query_set)
+        if page is not None:
+            serializer = PatientListSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = PatientListSerializer(query_set, many=True)
+        return Response(serializer.data)
+    
+    
+    
     def handle_treatments(
             self,
             *,

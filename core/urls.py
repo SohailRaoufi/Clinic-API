@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import include, path
+from .backup import BackupView
 from user.views import AnalyticsAPIView,ChatViewSet, JwtToken, Staff
 from rest_framework import routers
 from patient.views import AppointmentViewSet, PatientView, TreatmentViewSet, DailyViewSet
@@ -19,5 +20,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/", include(router.urls)),
     path("api/auth/", JwtToken.as_view()),
-    path("api/analytics/",AnalyticsAPIView.as_view())
+    path("api/analytics/",AnalyticsAPIView.as_view()),
+    path("api/backup/",BackupView.as_view())
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
