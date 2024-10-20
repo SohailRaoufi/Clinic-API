@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate
 
 from patient.models import Patient, Payment, DailyPatient
 from .consumers import get_room, sync_get_room
-from user.models import Messages
+from user.models import Messages, Task
 from .token_factory import create_token
 from django.contrib.auth.models import User
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
@@ -15,7 +15,7 @@ from .serializers import StaffSerializer
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from .serializers import MsgSerializer
+from .serializers import MsgSerializer, TaskSerializer
 from django.utils.dateparse import parse_date
 from django.db.models import Sum
 from datetime import datetime
@@ -62,6 +62,57 @@ class ChatViewSet(ListModelMixin, GenericViewSet):
                     }
                 )
         return Response(status=status.HTTP_201_CREATED)
+
+class TaskViewSet(ModelViewSet):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    
+    def get_permissions(self):
+        if self.request.method == "GET" or self.request.method == "PATCH":
+            return [IsAuthenticated()]
+        else:
+            return [IsAuthenticated(), IsAdmin()]
+    
+    def list(self,request):
+        date = request.GET.get("date")
+
+        if not date:
+            return Response(
+                {
+                    "date":"date Param Required!"
+                },
+                status = status.HTTP_400_BAD_REQUEST
+            )
+        tasks = Task.objects.filter(created_at=date).order_by("status")
+
+        serializer = TaskSerializer(tasks, many = True)
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+    
+    def partial_update(self,request, pk = None):
+        try:
+            task = Task.objects.get(id=pk)
+        except Task.DoesNotExist:
+            return Response(
+                {"error": "Task not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = TaskSerializer(instance=task, data=request.data, partial = True)
+
+        if not serializer.is_valid():
+            return Response(
+                {
+                    "wrong" :"Wront data sent!"
+                },
+            )
+        serializer.save()
+        return Response(
+            serializer.data
+            ,status=status.HTTP_200_OK)
 
 
 class JwtToken(APIView):

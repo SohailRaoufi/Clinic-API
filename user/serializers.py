@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from django.contrib.auth import get_user_model
 
-from user.models import Messages
+from user.models import Messages, Task
 
 
 class MsgSerializer(serializers.ModelSerializer):
@@ -26,3 +26,21 @@ class StaffSerializer(serializers.ModelSerializer):
         
         instance.save()
         return instance
+
+
+class TaskSerializer(serializers.ModelSerializer):
+    assigned_to_name = serializers.SerializerMethodField()
+    assigned_by_name = serializers.SerializerMethodField()
+    class Meta:
+        model = Task
+        fields = "__all__"
+    
+    def get_assigned_to_name(self,obj):
+        if obj.assigned_to:
+            return obj.assigned_to.username
+        return None
+    
+    def get_assigned_by_name(self,obj):
+        if obj.assigned_by:
+            return obj.assigned_by.username
+        return None
