@@ -19,6 +19,8 @@ from .serializers import MsgSerializer, TaskSerializer
 from django.utils.dateparse import parse_date
 from django.db.models import Sum
 from datetime import datetime
+from django.db.models import Q
+from rest_framework.decorators import action
 
 
 class ChatViewSet(ListModelMixin, GenericViewSet):
@@ -91,7 +93,24 @@ class TaskViewSet(ModelViewSet):
             serializer.data,
             status=status.HTTP_200_OK
         )
-    
+    @action(detail = False, methods=["GET"])
+    def userTasks(self,request):
+        date = request.GET.get("date")
+
+        if not date:
+            return Response(
+                {
+                    "date":"date Param Required!"
+                },
+                status = status.HTTP_400_BAD_REQUEST
+            )
+        tasks = Task.objects.filter(created_at=date, assigned_to=request.user.id).order_by("status")
+
+        serializer = TaskSerializer(tasks, many = True)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
     def partial_update(self,request, pk = None):
         try:
             task = Task.objects.get(id=pk)
