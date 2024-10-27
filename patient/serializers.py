@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from patient.models import Appointment, Patient, PatientLogs, Treatment, DailyPatient
-
+from django.db import IntegrityError
 
 class PatientSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,11 +19,10 @@ class AppointmentCreationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointment
         fields = "__all__"
-
+            
 
 class AppointmentSerializer(serializers.ModelSerializer):
     time = serializers.SerializerMethodField()
-
     class Meta:
         model = Appointment
         exclude = ["created_at", "updated_at"]

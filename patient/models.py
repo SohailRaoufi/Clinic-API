@@ -135,6 +135,11 @@ class Appointment(models.Model):
 
     def __str__(self) -> str:
         return f"{self.patient} {self.time}"
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["day","time"],name="unique_pair_day_time")
+        ]
 
 
 class DailyPatient(models.Model):
