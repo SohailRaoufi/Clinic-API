@@ -261,7 +261,11 @@ class AppointmentViewSet(DestroyModelMixin, ListModelMixin, CreateModelMixin, Ge
 
     def create(self, request, *args, **kwargs):
         instance = AppointmentCreationSerializer(data=request.data)
-        instance.is_valid(raise_exception=True)
+        if not instance.is_valid():
+            return Response(
+                {"Failed":"Appointment Already Exists!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         instance.save()
         return Response(
             instance.data
