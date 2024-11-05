@@ -9,18 +9,16 @@ from rest_framework.decorators import action
 from .utils import get_curr_time
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, DestroyModelMixin, UpdateModelMixin
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
 
 
 class StandardPagination(PageNumberPagination):
     page_size = 20
-    page_size_query_param = 'page'
     max_page_size = 1000
 
 
 class PatientView(ModelViewSet):
-    queryset: Patient = Patient.objects.all()  # type:ignore
+    queryset: Patient = Patient.objects.all().order_by("-created_at")  # type:ignore
     pagination_class = StandardPagination
     permission_classes = [IsAuthenticated]
 
