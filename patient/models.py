@@ -57,7 +57,7 @@ class Patient(models.Model):
     pregnancy = models.BooleanField(default=False)
     diabetes = models.BooleanField(default=False)
     reflux_esophagitis = models.BooleanField(default=False)
-    xray = models.CharField(unique=True, max_length=250, null=True, blank=True)
+    xray = models.CharField(max_length=250, null=True, blank=True)
     archive = models.BooleanField(default=False)
 
     notes = models.TextField(null=True, blank=True)
