@@ -1,7 +1,24 @@
 from rest_framework import serializers
 
-from patient.models import Appointment, Patient, PatientLogs, Treatment, DailyPatient
-from django.db import IntegrityError
+from patient.models import Appointment, DentalLab, Patient, PatientLogs, Treatment, DailyPatient
+
+
+
+class DentalLabSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DentalLab
+        fields = "__all__"
+
+
+
+
+class MedicineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DentalLab
+        fields = "__all__"
+
+
+
 
 class PatientSerializer(serializers.ModelSerializer):
     class Meta:

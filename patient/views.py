@@ -2,7 +2,17 @@ from typing import Any, Dict
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from .models import Appointment, DentalLab, Medicine, Patient, PatientLogs, Payment, Treatment, DailyPatient
-from .serializers import AppointmentCreationSerializer, AppointmentSerializer, PatientListSerializer, PatientLogsSerializer, PatientSerializer, TreatmentSerializer, DailySerializer
+from .serializers import (
+    AppointmentCreationSerializer,
+    AppointmentSerializer,
+    PatientListSerializer,
+    PatientLogsSerializer,
+    PatientSerializer,
+    TreatmentSerializer,
+    DailySerializer,
+    MedicineSerializer,
+    DentalLabSerializer
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.decorators import action
@@ -23,12 +33,13 @@ class StandardPagination(PageNumberPagination):
 class MedicineViewSet(ModelViewSet):
     queryset = Medicine.objects.all()
     permission_classes = [IsAdminOrStaff]
-
+    serializer_class = MedicineSerializer
 
 
 class DentalLabViewSet(ModelViewSet):
     queryset = DentalLab.objects.all()
     permission_classes = [IsAuthenticated]
+    serializer_class = DentalLabSerializer 
 
 
 
