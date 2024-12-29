@@ -1,5 +1,5 @@
 from rest_framework import serializers
-
+from patient.utils import get_role as get_real_role
 from django.contrib.auth import get_user_model
 
 from user.models import Messages, Task
@@ -11,12 +11,19 @@ class MsgSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class StaffSerializer(serializers.ModelSerializer):
+    role = serializers.SerializerMethodField()
     class Meta:
         model = get_user_model()
         fields = "__all__"
         extra_kwargs = {
             "password": {"write_only": True}
         }
+
+
+    def get_role(self,obj):
+        return get_real_role(obj)
+
+
     def update(self, instance, validated_data):
         instance.username = validated_data.get('username', instance.username)
         instance.email = validated_data.get('email', instance.email)
