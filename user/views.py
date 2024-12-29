@@ -172,23 +172,25 @@ class Staff(ModelViewSet):
     serializer_class = StaffSerializer
     permission_classes = [IsAdmin]
 
-    def create_user(self, username, password, email):
+    def create_user(self, username, password, email,is_staff):
         user = User.objects.create_user(
-            username=username, email=email, password=password, is_staff=True)
+            username=username, email=email, password=password, is_staff=is_staff
+        )
         user.save()
 
     def create(self, request):
         username = request.data.get("username", None)
         email = request.data.get("email", None)
         password = request.data.get("password", None)
+        role = request.data.get("role","STAFF")
 
         if not username or not password:
             return Response(
                 {"detail": "'username' and 'password' required"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        self.create_user(username, password, email)
+        is_staff = True if role == "STAFF" else False
+        self.create_user(username, password, email,is_staff=is_staff)
         return Response(
             status=status.HTTP_200_OK
         )

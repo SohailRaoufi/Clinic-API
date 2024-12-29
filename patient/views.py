@@ -1,7 +1,7 @@
 from typing import Any, Dict
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
-from .models import Appointment, Patient, PatientLogs, Payment, Treatment, DailyPatient
+from .models import Appointment, DentalLab, Medicine, Patient, PatientLogs, Payment, Treatment, DailyPatient
 from .serializers import AppointmentCreationSerializer, AppointmentSerializer, PatientListSerializer, PatientLogsSerializer, PatientSerializer, TreatmentSerializer, DailySerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
@@ -10,12 +10,27 @@ from .utils import get_curr_time
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, DestroyModelMixin, UpdateModelMixin
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
-from user.perms import IsAdminOrStaff
+from user.perms import IsAdmin, IsAdminOrStaff
 
 
 class StandardPagination(PageNumberPagination):
     page_size = 20
     max_page_size = 1000
+
+
+
+
+class MedicineViewSet(ModelViewSet):
+    queryset = Medicine.objects.all()
+    permission_classes = [IsAdminOrStaff]
+
+
+
+class DentalLabViewSet(ModelViewSet):
+    queryset = DentalLab.objects.all()
+    permission_classes = [IsAuthenticated]
+
+
 
 
 class PatientView(ModelViewSet):
