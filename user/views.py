@@ -238,9 +238,8 @@ class AnalyticsAPIView(APIView):
 
             for payment in payments_treatment:
                 result.append({
-                    "name": payment.treatment.patient.full_name(),
+                    "name": payment.treatment.patient.full_name,
                     "payment": payment.amount,
-                    "name": payment.treatment.type_of_treatment,
                     "source": "Treatment"
                 })
                 total_payment += payment.amount

@@ -76,9 +76,10 @@ class Patient(models.Model):
         ):
             res += treatment.remaining_amount()
         return res
-
+    
+    @property
     def full_name(self) -> str:
-        return str(self.name) + str(self.last_name)
+        return f"{self.name} {self.last_name}"
 
 
 class PatientLogs(models.Model):
