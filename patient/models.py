@@ -173,7 +173,16 @@ class DentalLab(models.Model):
     def __str__(self) -> str:
         return self.name
 
-
+    @property
+    def status(self):
+        if self.is_done:
+            return "done"
+        elif self.is_called:
+            return "waiting"
+        elif self.to > self.day:
+            return "pending"
+        else:
+            return "warning"
 
 
 class Perscription(models.Model):

@@ -5,9 +5,16 @@ from patient.models import Appointment, DentalLab, Patient, PatientLogs, Treatme
 
 
 class DentalLabSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
     class Meta:
         model = DentalLab
         fields = "__all__"
+    
+
+    def get_status(self,obj):
+        return self.status
+
+
 
 
 
