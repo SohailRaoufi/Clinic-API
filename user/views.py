@@ -146,7 +146,7 @@ class JwtToken(APIView):
             )
 
         user = authenticate(username=email, password=password)
-        if user and user.is_active:
+        if user:
             token = create_token(user)
             return Response(
                 {
@@ -168,7 +168,7 @@ class JwtToken(APIView):
 
 
 class Staff(ModelViewSet):
-    queryset = User.objects.filter(is_staff=True, is_superuser=False)
+    queryset = User.objects.filter(is_superuser=False)
     serializer_class = StaffSerializer
     permission_classes = [IsAdmin]
 
