@@ -6,6 +6,7 @@ from rest_framework import status
 from django.contrib.auth import authenticate
 
 from patient.models import Patient, Payment, DailyPatient
+from user.perms import IsAdmin
 from .consumers import get_room, sync_get_room
 from user.models import Messages, Task
 from .token_factory import create_token
@@ -73,7 +74,7 @@ class TaskViewSet(ModelViewSet):
         if self.request.method == "GET" or self.request.method == "PATCH":
             return [IsAuthenticated()]
         else:
-            return [IsAuthenticated(), IsAdmin()]
+            return [IsAdmin()]
     
     def list(self,request):
         date = request.GET.get("date")
@@ -161,21 +162,6 @@ class JwtToken(APIView):
 
 
 
-# Permissions
-class IsAdmin(BasePermission):
-    def has_permission(self, request, view):
-        return user.is_superuser
-
-
-class IsDoctor(BasePermission):
-    def has_permission(self,request,view):
-        return (not request.user.staff) and (not request.user.is_superuser)
-
-
-class IsStaff(BasePermission):
-    def has_permission(self,request,view):
-        return (not request.user.is_superuser) and (request.user.is_staff)
-
 
 
 
@@ -184,7 +170,7 @@ class IsStaff(BasePermission):
 class Staff(ModelViewSet):
     queryset = User.objects.filter(is_staff=True, is_superuser=False)
     serializer_class = StaffSerializer
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAdmin]
 
     def create_user(self, username, password, email):
         user = User.objects.create_user(
@@ -209,7 +195,7 @@ class Staff(ModelViewSet):
 
 
 class AnalyticsAPIView(APIView):
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAdmin]
 
     def get(self, request):
         analytics_type = request.query_params.get("type")

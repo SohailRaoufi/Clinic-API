@@ -10,6 +10,7 @@ from .utils import get_curr_time
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, DestroyModelMixin, UpdateModelMixin
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
+from user.perms import IsAdminOrStaff
 
 
 class StandardPagination(PageNumberPagination):
@@ -20,7 +21,7 @@ class StandardPagination(PageNumberPagination):
 class PatientView(ModelViewSet):
     queryset: Patient = Patient.objects.all().order_by("-created_at")  # type:ignore
     pagination_class = StandardPagination
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrStaff]
 
     def get_serializer_class(self):  # type:ignore
         if self.action in ["list", "retrieve"]:
@@ -237,6 +238,7 @@ class PatientView(ModelViewSet):
 class AppointmentViewSet(DestroyModelMixin, ListModelMixin, CreateModelMixin, GenericViewSet):
     queryset = Appointment.objects.all()
     serializer_class = Appointment
+    permission_classes = [IsAuthenticated]
 
     def list(self, request):
         day = request.GET.get("day")
@@ -277,7 +279,7 @@ class TreatmentViewSet(
     GenericViewSet
 ):
     queryset: object = Treatment.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrStaff]
     serializer_class = TreatmentSerializer
 
     @ action(
@@ -323,7 +325,7 @@ class TreatmentViewSet(
 
 
 class DailyViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrStaff]
     queryset = DailyPatient.objects.all()
     serializer_class = DailySerializer
 
