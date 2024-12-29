@@ -12,7 +12,7 @@ class DentalLabSerializer(serializers.ModelSerializer):
     
 
     def get_status(self,obj):
-        return self.status
+        return obj.status
 
 
 
