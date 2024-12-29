@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
+from django.utils import timezone
+
 
 GENDER_CHOICES = [
     ('male', 'Male'),
@@ -147,3 +149,73 @@ class DailyPatient(models.Model):
     payment = models.IntegerField(blank=False, null=False)
     day = models.DateField(auto_now_add=True)
     note = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True,null=True)
+    updated_at = models.DateTimeField(auto_now=True,null=True)
+
+
+
+
+
+class DentalLab(models.Model):
+    name = models.CharField(max_length=256,null=False,blank=False)
+    day = models.DateTimeField() 
+    to = models.DateTimeField()
+    # just to make sure
+    phone_no = models.CharField(max_length=128,null=True,blank=True)
+    teeths = models.CharField(max_length=250, blank=False, null=False)
+    is_called = models.BooleanField(default=False)
+    is_done = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    def __str__(self) -> str:
+        return self.name
+
+
+
+
+class Perscription(models.Model):
+    patient = models.ForeignKey(Patient,null=True,blank=True,on_delete=models.CASCADE)
+    name = models.CharField(max_length=150,null=True,blank=True)
+    age = models.IntegerField(null=True,blank=True)
+    gender = models.CharField(max_length=120,null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class Medicine(models.Model):
+    name = models.CharField(max_length=250,null=False,blank=False)
+    company = models.CharField(max_length=250,null=False,blank=False)
+    issue_date = models.DateField()
+    expire_date = models.DateField()
+    # add choices from frontend
+    type_of = models.CharField(max_length=250)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+
+
+    def __str__(self) -> str:
+        return self.name
+
+class PrescriptionMedicine(models.Model):
+    prescription = models.ForeignKey(Perscription, on_delete=models.CASCADE)
+    medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)  
+    instructions = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    class Meta:
+        unique_together = ('prescription', 'medicine')  
+
+    def __str__(self) -> str:
+        return f"{self.prescription.name} - {self.medicine.name} (Qty: {self.quantity})"
+

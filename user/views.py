@@ -160,10 +160,25 @@ class JwtToken(APIView):
             )
 
 
+
+# Permissions
 class IsAdmin(BasePermission):
     def has_permission(self, request, view):
-        user = request.user
         return user.is_superuser
+
+
+class IsDoctor(BasePermission):
+    def has_permission(self,request,view):
+        return (not request.user.staff) and (not request.user.is_superuser)
+
+
+class IsStaff(BasePermission):
+    def has_permission(self,request,view):
+        return (not request.user.is_superuser) and (request.user.is_staff)
+
+
+
+
 
 
 class Staff(ModelViewSet):
