@@ -41,6 +41,19 @@ class DentalLabViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = DentalLabSerializer 
 
+    def list(self, request):
+        patientId = request.query_params.get("patientId")
+        if patientId:
+            data = self.queryset.filter(patient=patientId)
+            serializer = self.get_serializer(data, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+
+        allData = self.queryset.all()
+        serializer = self.get_serializer(allData, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+
 
 
 

@@ -161,6 +161,9 @@ class DentalLab(models.Model):
     name = models.CharField(max_length=256,null=False,blank=False)
     day = models.DateTimeField() 
     to = models.DateTimeField()
+    patient = models.ForeignKey(Patient, null=True, blank=True, on_delete=models.CASCADE)
+    labratory_name = models.CharField(max_length=256,null=True,blank=True)
+    dental_type = models.CharField(max_length=256,null=True,blank=True)
     # just to make sure
     phone_no = models.CharField(max_length=128,null=True,blank=True)
     teeths = models.CharField(max_length=250, blank=False, null=False)
