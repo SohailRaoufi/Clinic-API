@@ -182,7 +182,7 @@ class DentalLab(models.Model):
             return "done"
         elif self.is_called:
             return "waiting"
-        elif self.to > self.day:
+        elif self.to > timezone.now():
             return "pending"
         else:
             return "warning"
