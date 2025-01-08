@@ -4,7 +4,15 @@ from django.urls import include, path
 from .backup import BackupView
 from user.views import AnalyticsAPIView,ChatViewSet, JwtToken, Staff, TaskViewSet
 from rest_framework import routers
-from patient.views import AppointmentViewSet, DentalLabViewSet, MedicineViewSet, PatientView, TreatmentViewSet, DailyViewSet
+from patient.views import (
+    AppointmentViewSet,
+    DentalLabViewSet,
+    MedicineViewSet,
+    PatientView,
+    TreatmentViewSet,
+    DailyViewSet,
+    PaymentViewSet
+)
 from django.conf.urls.static import static
 from django.conf import settings
 
@@ -18,6 +26,7 @@ router.register("daily", DailyViewSet, basename="daily")
 router.register("tasks", TaskViewSet)
 router.register("medicine", MedicineViewSet,basename="medicine")
 router.register('lab',DentalLabViewSet,basename="dentallab")
+router.register("payment",PaymentViewSet,basename="payment")
 
 urlpatterns = [
     path('admin/', admin.site.urls),

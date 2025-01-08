@@ -1,7 +1,14 @@
 from rest_framework import serializers
 
-from patient.models import Appointment, DentalLab, Patient, PatientLogs, Treatment, DailyPatient
-
+from patient.models import (
+        Appointment,
+        DentalLab,
+        Patient,
+        PatientLogs,
+        Treatment,
+        DailyPatient,
+        Payment
+)
 
 
 class DentalLabSerializer(serializers.ModelSerializer):
@@ -89,3 +96,32 @@ class DailySerializer(serializers.ModelSerializer):
     class Meta:
         model = DailyPatient
         fields = "__all__"
+
+
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+    treatment_name = serializers.SerializerMethodField()
+    patient = serializers.SerializerMethodField()
+    remaining_amount = serializers.SerializerMethodField()
+    total_amount = serializers.SerializerMethodField()
+    
+
+    class Meta:
+        model = Payment
+        fields = "__all__"
+    
+    
+    def get_total_amount(self,obj):
+        return obj.treatment.amount
+
+    def get_remaining_amount(self,obj):
+        return obj.treatment.remaining_amount()
+
+    def get_treatment_name(self,obj):
+        return obj.treatment.type_of_treatment
+
+    def get_patient(self,obj):
+        return obj.treatment.patient.full_name
+
+

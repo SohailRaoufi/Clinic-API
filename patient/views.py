@@ -8,6 +8,7 @@ from .serializers import (
     PatientListSerializer,
     PatientLogsSerializer,
     PatientSerializer,
+    PaymentSerializer,
     TreatmentSerializer,
     DailySerializer,
     MedicineSerializer,
@@ -28,6 +29,12 @@ class StandardPagination(PageNumberPagination):
     max_page_size = 1000
 
 
+
+
+
+class PaymentViewSet(GenericViewSet,RetrieveModelMixin):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
 
 
 class MedicineViewSet(ModelViewSet):
@@ -67,6 +74,20 @@ class PatientView(ModelViewSet):
             return PatientListSerializer
         else:
             return PatientSerializer
+
+
+    @action(
+        detail=True,
+    )
+    def payments(self,request,pk=None):
+        patient = self.get_object()
+        payments = Payment.objects.filter( #type:ignore
+            treatment__patient=patient
+        )
+        return Response(
+            PaymentSerializer(payments,many=True).data
+        )
+
 
     @action(detail=False, methods=["GET"])
     def search(self, request):
