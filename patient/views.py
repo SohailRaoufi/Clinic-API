@@ -83,7 +83,7 @@ class PatientView(ModelViewSet):
         patient = self.get_object()
         payments = Payment.objects.filter( #type:ignore
             treatment__patient=patient
-        )
+        ).order_by("-created_at")
         return Response(
             PaymentSerializer(payments,many=True).data
         )
