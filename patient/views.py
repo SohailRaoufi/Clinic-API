@@ -33,7 +33,7 @@ class StandardPagination(PageNumberPagination):
 
 
 class PaymentViewSet(GenericViewSet,RetrieveModelMixin):
-    queryset = Payment.objects.all()
+    queryset = Payment.objects.all().order_by('-created_at')
     serializer_class = PaymentSerializer
 
 
